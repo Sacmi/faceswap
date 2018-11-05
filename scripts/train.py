@@ -196,11 +196,10 @@ class Train():
     def show(self, image, name=""):
         """ Generate the preview and write preview file output """
         try:
-            scriptpath = os.path.realpath(os.path.dirname(sys.argv[0]))
             if self.args.write_image:
-                os.system("clear")
-                plt.imshow(image)
-                plt.show()
+                img = "sample_{}.jpg".format(name)
+                imgfile = os.path.join("/content/drive/app", img)
+                cv2.imwrite(imgfile, image)
             if self.args.redirect_gui:
                 img = ".gui_preview_{}.jpg".format(name)
                 imgfile = os.path.join(scriptpath, "lib", "gui",
