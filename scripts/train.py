@@ -199,7 +199,8 @@ class Train():
             scriptpath = os.path.realpath(os.path.dirname(sys.argv[0]))
             if self.args.write_image:
                 os.system("clear")
-                plt.show(image)
+                plt.imshow(image)
+                plt.show()
             if self.args.redirect_gui:
                 img = ".gui_preview_{}.jpg".format(name)
                 imgfile = os.path.join(scriptpath, "lib", "gui",
