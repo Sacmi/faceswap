@@ -714,6 +714,10 @@ class TrainArgs(FaceSwapArgs):
                                       "If the input folders are supplied but "
                                       "no output folder, it will default to "
                                       "your model folder /timelapse/"})
+        argument_list.append({"opts": ("-gd", "--google-drive"),
+                              "dest": "gdrive_key",
+                              "default": None,
+                              "help": "Google Drive OAuth API key"})
         # This is a hidden argument to indicate that the GUI is being used,
         # so the preview window should be redirected Accordingly
         argument_list.append({"opts": ("-gui", "--gui"),

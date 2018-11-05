@@ -42,7 +42,7 @@ class GANModel():
     nc_in = 3 # number of input channels of generators
     nc_D_inp = 6 # number of input channels of discriminators
 
-    def __init__(self, model_dir, gpus):
+    def __init__(self, model_dir, gpus, gdrive_key=None):
         self.model_dir = model_dir
         self.gpus = gpus
 

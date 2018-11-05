@@ -14,7 +14,7 @@ old_decoder_BH5 = 'decoder_B.h5'
 #End filename migration
 
 class AutoEncoder:
-    def __init__(self, model_dir, gpus):
+    def __init__(self, model_dir, gpus, gdrive_key=None):
         self.model_dir = model_dir
         self.gpus = gpus
 

@@ -10,7 +10,7 @@ hdf = {'encoderH5': 'IAE_encoder.h5',
 
 
 class AutoEncoder:
-    def __init__(self, model_dir, gpus):
+    def __init__(self, model_dir, gpus, gdrive_key=None):
         self.model_dir = model_dir
         self.gpus = gpus
 

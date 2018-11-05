@@ -110,7 +110,8 @@ class Train():
         """ Load the model requested for training """
         model_dir = get_folder(self.args.model_dir)
         model = PluginLoader.get_model(self.trainer_name)(model_dir,
-                                                          self.args.gpus)
+                                                          self.args.gpus,
+                                                          self.args.gdrive_key)
 
         model.load(swapped=False)
         return model
