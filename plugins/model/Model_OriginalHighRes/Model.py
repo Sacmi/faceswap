@@ -26,7 +26,7 @@ from keras.utils import multi_gpu_model
 from lib.PixelShuffler import PixelShuffler
 import lib.Serializer
 from lib.utils import backup_file
-from lib.gdrivesync import 
+from lib.gdrivesync import GoogleDriveSync
 
 from . import __version__    
 from .instance_normalization import InstanceNormalization
