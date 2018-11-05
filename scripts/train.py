@@ -8,6 +8,7 @@ import threading
 import cv2
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
+import matplotlib.pyplot as plt
 
 from lib.utils import (get_folder, get_image_paths, set_system_verbosity,
                        Timelapse)
@@ -197,9 +198,8 @@ class Train():
         try:
             scriptpath = os.path.realpath(os.path.dirname(sys.argv[0]))
             if self.args.write_image:
-                img = "_sample_{}.jpg".format(name)
-                imgfile = os.path.join(scriptpath, img)
-                cv2.imwrite(imgfile, image)
+                os.system("clear")
+                plt.show(image)
             if self.args.redirect_gui:
                 img = ".gui_preview_{}.jpg".format(name)
                 imgfile = os.path.join(scriptpath, "lib", "gui",
