@@ -16,29 +16,35 @@ class GoogleDriveSync:
         try:
             auth.Auth(key)
         except Exception:
-            message = "Something wrong with your OAuth key. Try to get new one and restart this script"
-            raise GoogleDriveAuthError(
-                message)
+            if key == None:
+                self.is_activated = False
+            else:
+                message = "Something wrong with your OAuth key. Try to get new one and restart this script"
+                raise GoogleDriveAuthError(
+                    message)
+        
         self.drive = GoogleDrive(auth)
         self.model_dir = model_dir
+        self.is_activated = True
 
     def upload(self):
         """ Upload model to Google Drive """
-        file_list = self.drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+        if self.is_activated:
+            file_list = self.drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
 
-        for h5file in tqdm(listdir(self.model_dir)):
-            for gd_file in file_list:
-                if h5file == gd_file["title"]:
-                    file = self.drive.CreateFile({ "id": gd_file["id"] })
-                
-            if "file" not in locals() and h5file.endswith(".h5"):
-                file = self.drive.CreateFile({ "title": h5file })
+            for h5file in tqdm(listdir(self.model_dir)):
+                for gd_file in file_list:
+                    if h5file == gd_file["title"]:
+                        file = self.drive.CreateFile({ "id": gd_file["id"] })
+                    
+                if "file" not in locals() and h5file.endswith(".h5"):
+                    file = self.drive.CreateFile({ "title": h5file })
 
-            if "file" in locals():            
-                file.SetContentFile("{}/{}".format(self.model_dir, h5file))
-                file.Upload()
+                if "file" in locals():            
+                    file.SetContentFile("{}/{}".format(self.model_dir, h5file))
+                    file.Upload()
 
-                del file
+                    del file
 
     def uploadThread(self, thread_name="Google Sync Thread"):
         """ Create and start thread with upload function """
