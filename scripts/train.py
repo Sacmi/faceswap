@@ -200,8 +200,6 @@ class Train():
                 img = "sample_{}.jpg".format(name)
                 imgfile = os.path.join("/content/drive/app", img)
                 cv2.imwrite(imgfile, image)
-                plt.imshow(image)
-                plt.show()
             if self.args.redirect_gui:
                 img = ".gui_preview_{}.jpg".format(name)
                 imgfile = os.path.join(scriptpath, "lib", "gui",
