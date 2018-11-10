@@ -14,6 +14,8 @@ class AutoEncoder:
         self.model_dir = model_dir
         self.gpus = gpus
 
+        self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
+
         self.encoder = self.Encoder()
         self.decoder = self.Decoder()
         self.inter_A = self.Intermidiate()
@@ -47,4 +49,5 @@ class AutoEncoder:
         self.inter_both.save_weights(str(self.model_dir / hdf['inter_bothH5']))
         self.inter_A.save_weights(str(self.model_dir / hdf['inter_AH5']))
         self.inter_B.save_weights(str(self.model_dir / hdf['inter_BH5']))
-        print('saved model weights')
+        print("Model saved to local storage. Uploading to Google Drive...")
+        self.gdrive_sync.uploadThread()

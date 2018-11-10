@@ -47,6 +47,8 @@ class GANModel():
         self.model_dir = model_dir
         self.gpus = gpus
 
+        self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
+
         optimizer = Adam(1e-4, 0.5)
 
         # Build and compile the discriminator
@@ -197,4 +199,5 @@ class GANModel():
             self.netGB.save_weights(str(self.model_dir / hdf['netGBH5']))
         self.netDA.save_weights(str(self.model_dir / hdf['netDAH5']))
         self.netDB.save_weights(str(self.model_dir / hdf['netDBH5']))
-        print ("Models saved.")
+        print("Model saved to local storage. Uploading to Google Drive...")
+        self.gdrive_sync.uploadThread()

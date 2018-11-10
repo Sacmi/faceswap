@@ -139,7 +139,7 @@ class Model():
             self.encoder.load_weights(os.path.join(model_dir, hdf['encoderH5']))
             self.decoder_A.load_weights(os.path.join(model_dir, face_A))
             self.decoder_B.load_weights(os.path.join(model_dir, face_B))
-            print('loaded model weights')
+            print('Loaded model weights')
             return True
         except IOError as e:
             print('Failed loading training data:', e.strerror)            
@@ -289,7 +289,7 @@ class Model():
                 future.result()
                 
         print("Model saved to local storage. Uploading to Google Drive...")
-        threading.Thread(target=self.gdrive_sync.upload, name="GoogleDriveSync").start()
+        self.gdrive_sync.uploadThread()
     
                            
     @property
