@@ -1,6 +1,7 @@
 # AutoEncoder base classes
 
 from lib.utils import backup_file
+from lib.gdrivesync import GoogleDriveSync
 
 hdf = {'encoderH5': 'lowmem_encoder.h5',
        'decoder_AH5': 'lowmem_decoder_A.h5',

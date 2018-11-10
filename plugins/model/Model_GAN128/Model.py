@@ -12,6 +12,7 @@ from keras.optimizers import Adam
 from lib.PixelShuffler import PixelShuffler
 from .instance_normalization import InstanceNormalization
 from lib.utils import backup_file
+from lib.gdrivesync import GoogleDriveSync
 
 from keras.utils import multi_gpu_model
 

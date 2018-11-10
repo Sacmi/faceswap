@@ -2,6 +2,7 @@
 
 from lib.utils import backup_file
 from lib import Serializer
+from lib.gdrivesync import GoogleDriveSync
 from json import JSONDecodeError
 
 hdf = {'encoderH5': 'encoder.h5',

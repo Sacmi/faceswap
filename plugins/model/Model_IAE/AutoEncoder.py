@@ -1,6 +1,7 @@
 # Improved-AutoEncoder base classes
 
 from lib.utils import backup_file
+from lib.gdrivesync import GoogleDriveSync
 
 hdf = {'encoderH5': 'IAE_encoder.h5',
        'decoderH5': 'IAE_decoder.h5',
