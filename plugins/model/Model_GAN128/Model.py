@@ -12,6 +12,7 @@ from keras.optimizers import Adam
 from lib.PixelShuffler import PixelShuffler
 from .instance_normalization import InstanceNormalization
 from lib.utils import backup_file
+from lib.gdrivesync import GoogleDriveSync
 
 from keras.utils import multi_gpu_model
 
@@ -43,9 +44,11 @@ class GANModel():
     nc_in = 3 # number of input channels of generators
     nc_D_inp = 6 # number of input channels of discriminators
 
-    def __init__(self, model_dir, gpus):
+    def __init__(self, model_dir, gpus, gdrive_key=None):
         self.model_dir = model_dir
         self.gpus = gpus
+
+        self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
 
         optimizer = Adam(1e-4, 0.5)
 
@@ -197,4 +200,5 @@ class GANModel():
             self.netGB.save_weights(str(self.model_dir / hdf['netGBH5']))
         self.netDA.save_weights(str(self.model_dir / hdf['netDAH5']))
         self.netDB.save_weights(str(self.model_dir / hdf['netDBH5']))
-        print ("Models saved.")
+        print("Model saved to local storage. Uploading to Google Drive...")
+        self.gdrive_sync.uploadThread()

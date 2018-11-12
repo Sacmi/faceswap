@@ -1,6 +1,7 @@
 # AutoEncoder base classes
 
 from lib.utils import backup_file
+from lib.gdrivesync import GoogleDriveSync
 
 hdf = {'encoderH5': 'lowmem_encoder.h5',
        'decoder_AH5': 'lowmem_decoder_A.h5',
@@ -14,9 +15,11 @@ old_decoder_BH5 = 'decoder_B.h5'
 #End filename migration
 
 class AutoEncoder:
-    def __init__(self, model_dir, gpus):
+    def __init__(self, model_dir, gpus, gdrive_key=None):
         self.model_dir = model_dir
         self.gpus = gpus
+
+        self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
 
         self.encoder = self.Encoder()
         self.decoder_A = self.Decoder()
@@ -56,4 +59,5 @@ class AutoEncoder:
         self.encoder.save_weights(str(self.model_dir / hdf['encoderH5']))
         self.decoder_A.save_weights(str(self.model_dir / hdf['decoder_AH5']))
         self.decoder_B.save_weights(str(self.model_dir / hdf['decoder_BH5']))
-        print('saved model weights')
+        print("Model saved to local storage. Uploading to Google Drive...")
+        self.gdrive_sync.uploadThread()

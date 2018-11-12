@@ -10,6 +10,7 @@ import enum
 import os
 import sys
 import warnings
+import threading
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 from keras.initializers import RandomNormal
@@ -25,6 +26,7 @@ from keras.utils import multi_gpu_model
 from lib.PixelShuffler import PixelShuffler
 import lib.Serializer
 from lib.utils import backup_file
+from lib.gdrivesync import GoogleDriveSync
 
 from . import __version__    
 from .instance_normalization import InstanceNormalization
@@ -70,7 +72,7 @@ class Model():
     IMAGE_SHAPE = IMAGE_WIDTH, IMAGE_WIDTH, len('BRG') # good to let ppl know what these are...
     
     
-    def __init__(self, model_dir, gpus, encoder_type=ENCODER):
+    def __init__(self, model_dir, gpus, gdrive_key=None, encoder_type=ENCODER):
                 
         if mswindows:  
             from ctypes import cdll    
@@ -81,6 +83,8 @@ class Model():
         
         self.model_dir = model_dir
         
+        self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
+
         # can't chnage gpu's when the model is initialized no point in making it r/w
         self._gpus = gpus 
         
@@ -135,7 +139,7 @@ class Model():
             self.encoder.load_weights(os.path.join(model_dir, hdf['encoderH5']))
             self.decoder_A.load_weights(os.path.join(model_dir, face_A))
             self.decoder_B.load_weights(os.path.join(model_dir, face_B))
-            print('loaded model weights')
+            print('Loaded model weights')
             return True
         except IOError as e:
             print('Failed loading training data:', e.strerror)            
@@ -277,17 +281,15 @@ class Model():
         except IOError as e:
             print(e.strerror)                   
         
-        print('\nsaving model weights', end='', flush=True)        
-        
         from concurrent.futures import ThreadPoolExecutor, as_completed        
         
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = [executor.submit(getattr(self, mdl_name.rstrip('H5')).save_weights, str(self.model_dir / mdl_H5_fn)) for mdl_name, mdl_H5_fn in hdf.items()]
             for future in as_completed(futures):
                 future.result()
-                print('.', end='', flush=True)  
-
-        print('done', flush=True)              
+                
+        print("Model saved to local storage. Uploading to Google Drive...")
+        self.gdrive_sync.uploadThread()
     
                            
     @property

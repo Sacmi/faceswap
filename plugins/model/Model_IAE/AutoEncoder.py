@@ -1,6 +1,7 @@
 # Improved-AutoEncoder base classes
 
 from lib.utils import backup_file
+from lib.gdrivesync import GoogleDriveSync
 
 hdf = {'encoderH5': 'IAE_encoder.h5',
        'decoderH5': 'IAE_decoder.h5',
@@ -10,9 +11,11 @@ hdf = {'encoderH5': 'IAE_encoder.h5',
 
 
 class AutoEncoder:
-    def __init__(self, model_dir, gpus):
+    def __init__(self, model_dir, gpus, gdrive_key=None):
         self.model_dir = model_dir
         self.gpus = gpus
+
+        self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
 
         self.encoder = self.Encoder()
         self.decoder = self.Decoder()
@@ -47,4 +50,5 @@ class AutoEncoder:
         self.inter_both.save_weights(str(self.model_dir / hdf['inter_bothH5']))
         self.inter_A.save_weights(str(self.model_dir / hdf['inter_AH5']))
         self.inter_B.save_weights(str(self.model_dir / hdf['inter_BH5']))
-        print('saved model weights')
+        print("Model saved to local storage. Uploading to Google Drive...")
+        self.gdrive_sync.uploadThread()

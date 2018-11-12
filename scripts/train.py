@@ -8,6 +8,7 @@ import threading
 import cv2
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
+import matplotlib.pyplot as plt
 
 from lib.utils import (get_folder, get_image_paths, set_system_verbosity,
                        Timelapse)
@@ -110,7 +111,8 @@ class Train():
         """ Load the model requested for training """
         model_dir = get_folder(self.args.model_dir)
         model = PluginLoader.get_model(self.trainer_name)(model_dir,
-                                                          self.args.gpus)
+                                                          self.args.gpus,
+                                                          self.args.gdrive_key)
 
         model.load(swapped=False)
         return model
@@ -194,10 +196,9 @@ class Train():
     def show(self, image, name=""):
         """ Generate the preview and write preview file output """
         try:
-            scriptpath = os.path.realpath(os.path.dirname(sys.argv[0]))
             if self.args.write_image:
-                img = "_sample_{}.jpg".format(name)
-                imgfile = os.path.join(scriptpath, img)
+                img = "sample_{}.jpg".format(name)
+                imgfile = os.path.join("/content/drive/app", img)
                 cv2.imwrite(imgfile, image)
             if self.args.redirect_gui:
                 img = ".gui_preview_{}.jpg".format(name)

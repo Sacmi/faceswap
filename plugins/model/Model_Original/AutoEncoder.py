@@ -2,6 +2,7 @@
 
 from lib.utils import backup_file
 from lib import Serializer
+from lib.gdrivesync import GoogleDriveSync
 from json import JSONDecodeError
 
 hdf = {'encoderH5': 'encoder.h5',
@@ -10,7 +11,7 @@ hdf = {'encoderH5': 'encoder.h5',
        'state': 'state'}
 
 class AutoEncoder:
-    def __init__(self, model_dir, gpus):
+    def __init__(self, model_dir, gpus, gdrive_key=None):
         self.model_dir = model_dir
         self.gpus = gpus
 
@@ -40,7 +41,7 @@ class AutoEncoder:
             self.encoder.load_weights(str(self.model_dir / hdf['encoderH5']))
             self.decoder_A.load_weights(str(self.model_dir / face_A))
             self.decoder_B.load_weights(str(self.model_dir / face_B))
-            print('loaded model weights')
+            print('Loaded model weights')
             return True
         except Exception as e:
             print('Failed loading existing training data.')
@@ -55,7 +56,8 @@ class AutoEncoder:
         self.decoder_A.save_weights(str(self.model_dir / hdf['decoder_AH5']))
         self.decoder_B.save_weights(str(self.model_dir / hdf['decoder_BH5']))
         
-        print('saved model weights')
+        print("Model saved to local storage. Uploading to Google Drive...")
+        self.gdrive_sync.uploadThread()
         
         serializer = Serializer.get_serializer('json')
         state_fn = ".".join([hdf['state'], serializer.ext])
