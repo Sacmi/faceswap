@@ -1,5 +1,7 @@
 # Improved-AutoEncoder base classes
 
+import logging
+
 from lib.utils import backup_file
 from lib.gdrivesync import GoogleDriveSync
 
@@ -8,6 +10,8 @@ hdf = {'encoderH5': 'IAE_encoder.h5',
        'inter_AH5': 'IAE_inter_A.h5',
        'inter_BH5': 'IAE_inter_B.h5',
        'inter_bothH5': 'IAE_inter_both.h5'}
+
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class AutoEncoder:
@@ -34,11 +38,10 @@ class AutoEncoder:
             self.inter_both.load_weights(str(self.model_dir / hdf['inter_bothH5']))
             self.inter_A.load_weights(str(self.model_dir / face_A))
             self.inter_B.load_weights(str(self.model_dir / face_B))
-            print('loaded model weights')
+            logger.info('loaded model weights')
             return True
-        except Exception as e:
-            print('Failed loading existing training data.')
-            print(e)
+        except Exception:
+            logger.warning('Failed loading existing training data. Starting a fresh model: %s', self.model_dir)
             return False
 
     def save_weights(self):
@@ -50,5 +53,9 @@ class AutoEncoder:
         self.inter_both.save_weights(str(self.model_dir / hdf['inter_bothH5']))
         self.inter_A.save_weights(str(self.model_dir / hdf['inter_AH5']))
         self.inter_B.save_weights(str(self.model_dir / hdf['inter_BH5']))
+<<<<<<< HEAD
         print("Model saved to local storage. Uploading to Google Drive...")
         self.gdrive_sync.uploadThread()
+=======
+        logger.info('saved model weights')
+>>>>>>> 25349f60b97c9f2224f6a9c27f363d80b7155828
