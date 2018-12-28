@@ -18,6 +18,8 @@ class AutoEncoder:
         self.model_dir = model_dir
         self.gpus = gpus
 
+        self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
+
         self.encoder = self.Encoder()
         self.decoder_A = self.Decoder()
         self.decoder_B = self.Decoder()
