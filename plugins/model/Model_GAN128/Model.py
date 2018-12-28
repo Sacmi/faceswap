@@ -20,33 +20,37 @@ from keras.utils import multi_gpu_model
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-hdf = {'netGAH5':'netGA_GAN128.h5',
+hdf = {'netGAH5': 'netGA_GAN128.h5',
        'netGBH5': 'netGB_GAN128.h5',
        'netDAH5': 'netDA_GAN128.h5',
        'netDBH5': 'netDB_GAN128.h5'}
 
+
 def __conv_init(a):
     logger.info("conv_init %s", a)
-    k = RandomNormal(0, 0.02)(a) # for convolution kernel
+    k = RandomNormal(0, 0.02)(a)  # for convolution kernel
     k.conv_weight = True
     return k
 
-#def batchnorm():
+# def batchnorm():
 #    return BatchNormalization(momentum=0.9, axis=channel_axis, epsilon=1.01e-5, gamma_initializer = gamma_init)
+
 
 def inst_norm():
     return InstanceNormalization()
 
+
 conv_init = RandomNormal(0, 0.02)
-gamma_init = RandomNormal(1., 0.02) # for batch normalization
+gamma_init = RandomNormal(1., 0.02)  # for batch normalization
+
 
 class GANModel():
     img_size = 128
     channels = 3
     img_shape = (img_size, img_size, channels)
     encoded_dim = 1024
-    nc_in = 3 # number of input channels of generators
-    nc_D_inp = 6 # number of input channels of discriminators
+    nc_in = 3  # number of input channels of generators
+    nc_D_inp = 6  # number of input channels of discriminators
 
     def __init__(self, model_dir, gpus, gdrive_key=None):
         self.model_dir = model_dir
@@ -70,7 +74,8 @@ class GANModel():
 
         def conv_block(input_tensor, f, use_instance_norm=True):
             x = input_tensor
-            x = SeparableConv2D(f, kernel_size=3, strides=2, kernel_initializer=conv_init, use_bias=False, padding="same")(x)
+            x = SeparableConv2D(f, kernel_size=3, strides=2,
+                                kernel_initializer=conv_init, use_bias=False, padding="same")(x)
             if use_instance_norm:
                 x = inst_norm()(x)
             x = Activation("relu")(x)
@@ -78,16 +83,19 @@ class GANModel():
 
         def res_block(input_tensor, f, dilation=1):
             x = input_tensor
-            x = Conv2D(f, kernel_size=3, kernel_initializer=conv_init, use_bias=False, padding="same", dilation_rate=dilation)(x)
+            x = Conv2D(f, kernel_size=3, kernel_initializer=conv_init,
+                       use_bias=False, padding="same", dilation_rate=dilation)(x)
             x = LeakyReLU(alpha=0.2)(x)
-            x = Conv2D(f, kernel_size=3, kernel_initializer=conv_init, use_bias=False, padding="same", dilation_rate=dilation)(x)
+            x = Conv2D(f, kernel_size=3, kernel_initializer=conv_init,
+                       use_bias=False, padding="same", dilation_rate=dilation)(x)
             x = add([x, input_tensor])
             #x = LeakyReLU(alpha=0.2)(x)
             return x
 
         def upscale_ps(filters, use_instance_norm=True):
             def block(x, use_instance_norm=use_instance_norm):
-                x = Conv2D(filters*4, kernel_size=3, use_bias=False, kernel_initializer=RandomNormal(0, 0.02), padding='same')(x)
+                x = Conv2D(filters*4, kernel_size=3, use_bias=False,
+                           kernel_initializer=RandomNormal(0, 0.02), padding='same')(x)
                 if use_instance_norm:
                     x = inst_norm()(x)
                 x = LeakyReLU(0.1)(x)
@@ -97,12 +105,13 @@ class GANModel():
 
         def Encoder(nc_in=3, input_size=128):
             inp = Input(shape=(input_size, input_size, nc_in))
-            x = Conv2D(32, kernel_size=5, kernel_initializer=conv_init, use_bias=False, padding="same")(inp)
-            x = conv_block(x,64, use_instance_norm=False)
-            x = conv_block(x,128)
-            x = conv_block(x,256)
-            x = conv_block(x,512)
-            x = conv_block(x,1024)
+            x = Conv2D(32, kernel_size=5, kernel_initializer=conv_init,
+                       use_bias=False, padding="same")(inp)
+            x = conv_block(x, 64, use_instance_norm=False)
+            x = conv_block(x, 128)
+            x = conv_block(x, 256)
+            x = conv_block(x, 512)
+            x = conv_block(x, 1024)
             x = Dense(1024)(Flatten()(x))
             x = Dense(4*4*1024)(x)
             x = Reshape((4, 4, 1024))(x)
@@ -119,15 +128,18 @@ class GANModel():
 
             out64 = Conv2D(64, kernel_size=3, padding='same')(x)
             out64 = LeakyReLU(alpha=0.1)(out64)
-            out64 = Conv2D(3, kernel_size=5, padding='same', activation="tanh")(out64)
+            out64 = Conv2D(3, kernel_size=5, padding='same',
+                           activation="tanh")(out64)
 
             x = upscale_ps(32)(x)
             x = res_block(x, 32)
             x = res_block(x, 32)
-            alpha = Conv2D(1, kernel_size=5, padding='same', activation="sigmoid")(x)
-            rgb = Conv2D(3, kernel_size=5, padding='same', activation="tanh")(x)
+            alpha = Conv2D(1, kernel_size=5, padding='same',
+                           activation="sigmoid")(x)
+            rgb = Conv2D(3, kernel_size=5, padding='same',
+                         activation="tanh")(x)
             out = concatenate([alpha, rgb])
-            return Model(input_, [out, out64] )
+            return Model(input_, [out, out64])
 
         encoder = Encoder()
         decoder_A = Decoder_ps()
@@ -135,8 +147,9 @@ class GANModel():
         x = Input(shape=self.img_shape)
         netGA = Model(x, decoder_A(encoder(x)))
         netGB = Model(x, decoder_B(encoder(x)))
-        netGA.output_names = ["netGA_out_1", "netGA_out_2"] # Workarounds till https://github.com/keras-team/keras/issues/8962 is fixed.
-        netGB.output_names = ["netGB_out_1", "netGB_out_2"] #
+        # Workarounds till https://github.com/keras-team/keras/issues/8962 is fixed.
+        netGA.output_names = ["netGA_out_1", "netGA_out_2"]
+        netGB.output_names = ["netGB_out_1", "netGB_out_2"]
 
         self.netGA_sm = netGA
         self.netGB_sm = netGB
@@ -150,15 +163,16 @@ class GANModel():
             pass
 
         if self.gpus > 1:
-            netGA = multi_gpu_model( self.netGA_sm , self.gpus)
-            netGB = multi_gpu_model( self.netGB_sm , self.gpus)
+            netGA = multi_gpu_model(self.netGA_sm, self.gpus)
+            netGB = multi_gpu_model(self.netGB_sm, self.gpus)
 
         return netGA, netGB
 
     def build_discriminator(self):
         def conv_block_d(input_tensor, f, use_instance_norm=True):
             x = input_tensor
-            x = Conv2D(f, kernel_size=4, strides=2, kernel_initializer=conv_init, use_bias=False, padding="same")(x)
+            x = Conv2D(f, kernel_size=4, strides=2,
+                       kernel_initializer=conv_init, use_bias=False, padding="same")(x)
             if use_instance_norm:
                 x = inst_norm()(x)
             x = LeakyReLU(alpha=0.2)(x)
@@ -171,7 +185,8 @@ class GANModel():
             x = conv_block_d(x, 128, True)
             x = conv_block_d(x, 256, True)
             x = conv_block_d(x, 512, True)
-            out = Conv2D(1, kernel_size=4, kernel_initializer=conv_init, use_bias=False, padding="same", activation="sigmoid")(x)
+            out = Conv2D(1, kernel_size=4, kernel_initializer=conv_init,
+                         use_bias=False, padding="same", activation="sigmoid")(x)
             return Model(inputs=[inp], outputs=out)
 
         netDA = Discriminator(self.nc_D_inp)
@@ -204,5 +219,6 @@ class GANModel():
             self.netGB.save_weights(str(self.model_dir / hdf['netGBH5']))
         self.netDA.save_weights(str(self.model_dir / hdf['netDAH5']))
         self.netDB.save_weights(str(self.model_dir / hdf['netDBH5']))
-        logger.info("Model saved to local storage. Uploading to Google Drive...")
+        logger.info(
+            "Model saved to local storage. Uploading to Google Drive...")
         self.gdrive_sync.uploadThread()

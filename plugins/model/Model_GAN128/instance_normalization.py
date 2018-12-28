@@ -43,6 +43,7 @@ class InstanceNormalization(Layer):
         - [Layer Normalization](https://arxiv.org/abs/1607.06450)
         - [Instance Normalization: The Missing Ingredient for Fast Stylization](https://arxiv.org/abs/1607.08022)
     """
+
     def __init__(self,
                  axis=None,
                  epsilon=1e-3,
@@ -141,5 +142,6 @@ class InstanceNormalization(Layer):
         }
         base_config = super(InstanceNormalization, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
 
 get_custom_objects().update({'InstanceNormalization': InstanceNormalization})
