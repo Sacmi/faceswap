@@ -53,9 +53,5 @@ class AutoEncoder:
         self.inter_both.save_weights(str(self.model_dir / hdf['inter_bothH5']))
         self.inter_A.save_weights(str(self.model_dir / hdf['inter_AH5']))
         self.inter_B.save_weights(str(self.model_dir / hdf['inter_BH5']))
-<<<<<<< HEAD
-        print("Model saved to local storage. Uploading to Google Drive...")
+        logger.info("Model saved to local storage. Uploading to Google Drive...")
         self.gdrive_sync.uploadThread()
-=======
-        logger.info('saved model weights')
->>>>>>> 25349f60b97c9f2224f6a9c27f363d80b7155828

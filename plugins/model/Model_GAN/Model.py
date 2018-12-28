@@ -187,9 +187,6 @@ class GANModel():
             self.netGB.save_weights(str(self.model_dir / hdf['netGBH5']))
         self.netDA.save_weights(str(self.model_dir / hdf['netDAH5']))
         self.netDB.save_weights(str(self.model_dir / hdf['netDBH5']))
-<<<<<<< HEAD
-        print("Model saved to local storage. Uploading to Google Drive...")
+        
+        logger.info("Model saved to local storage. Uploading to Google Drive...")
         self.gdrive_sync.uploadThread()
-=======
-        logger.info("Models saved.")
->>>>>>> 25349f60b97c9f2224f6a9c27f363d80b7155828

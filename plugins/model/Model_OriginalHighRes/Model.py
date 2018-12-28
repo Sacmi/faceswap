@@ -71,32 +71,20 @@ class Model():
     IMAGE_WIDTH = max(IMAGE_SHAPE)
     IMAGE_WIDTH = (IMAGE_WIDTH//16 + (1 if (IMAGE_WIDTH%16)>=8 else 0))*16
     IMAGE_SHAPE = IMAGE_WIDTH, IMAGE_WIDTH, len('BRG') # good to let ppl know what these are...
-<<<<<<< HEAD
     
     
     def __init__(self, model_dir, gpus, gdrive_key=None, encoder_type=ENCODER):
                 
         if mswindows:  
             from ctypes import cdll    
-=======
-
-
-    def __init__(self, model_dir, gpus, encoder_type=ENCODER):
-
-        if mswindows:
-            from ctypes import cdll
->>>>>>> 25349f60b97c9f2224f6a9c27f363d80b7155828
             mydll = cdll.LoadLibrary("user32.dll")
             mydll.SetProcessDPIAware(True)
 
         self._encoder_type = encoder_type
 
         self.model_dir = model_dir
-<<<<<<< HEAD
         
         self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
-=======
->>>>>>> 25349f60b97c9f2224f6a9c27f363d80b7155828
 
         # can't chnage gpu's when the model is initialized no point in making it r/w
         self._gpus = gpus
@@ -152,11 +140,7 @@ class Model():
             self.encoder.load_weights(os.path.join(model_dir, hdf['encoderH5']))
             self.decoder_A.load_weights(os.path.join(model_dir, face_A))
             self.decoder_B.load_weights(os.path.join(model_dir, face_B))
-<<<<<<< HEAD
-            print('Loaded model weights')
-=======
-            logger.info('loaded model weights')
->>>>>>> 25349f60b97c9f2224f6a9c27f363d80b7155828
+            logger.info('Loaded model weights')
             return True
         except IOError as e:
             logger.warning('Error loading training info: %s', str(e.strerror))
@@ -296,36 +280,19 @@ class Model():
                      })
                 fp.write(state_json.encode('utf-8'))
         except IOError as e:
-<<<<<<< HEAD
-            print(e.strerror)                   
-        
-        from concurrent.futures import ThreadPoolExecutor, as_completed        
-        
-=======
             logger.error(e.strerror)
-
-        logger.info('saving model weights')
 
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
->>>>>>> 25349f60b97c9f2224f6a9c27f363d80b7155828
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = [executor.submit(getattr(self, mdl_name.rstrip('H5')).save_weights, str(self.model_dir / mdl_H5_fn)) for mdl_name, mdl_H5_fn in hdf.items()]
             for future in as_completed(futures):
                 future.result()
-<<<<<<< HEAD
                 
-        print("Model saved to local storage. Uploading to Google Drive...")
+        logger.info("Model saved to local storage. Uploading to Google Drive...")
         self.gdrive_sync.uploadThread()
     
                            
-=======
-                print('.', end='', flush=True)
-
-        logger.info('done')
-
-
->>>>>>> 25349f60b97c9f2224f6a9c27f363d80b7155828
     @property
     def gpus(self):
         return self._gpus
