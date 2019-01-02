@@ -35,8 +35,7 @@ class Convert():
         self.seamless_clone = seamless_clone
         self.sharpen_image = sharpen_image
         self.match_histogram = match_histogram
-        # Choose in 'FaceHullAndRect', 'FaceHull', 'Rect'
-        self.mask_type = mask_type.lower()
+        self.mask_type = mask_type.lower()  # Choose in 'FaceHullAndRect', 'FaceHull', 'Rect'
         self.draw_transparent = draw_transparent
 
     def patch_image(self, image, face_detected, size):
@@ -165,8 +164,7 @@ class Convert():
         matched_R = self.hist_match(src_im[:, :, 0], tar_im[:, :, 0], mask)
         matched_G = self.hist_match(src_im[:, :, 1], tar_im[:, :, 1], mask)
         matched_B = self.hist_match(src_im[:, :, 2], tar_im[:, :, 2], mask)
-        matched = numpy.stack(
-            (matched_R, matched_G, matched_B), axis=2).astype(src_im.dtype)
+        matched = numpy.stack((matched_R, matched_G, matched_B), axis=2).astype(src_im.dtype)
         return matched
 
     def get_new_face(self, image, mat, size):
@@ -188,8 +186,7 @@ class Convert():
             mask = fake_output[:, :, :, :1]
             new_face = fake_output[:, :, :, 1:]
             new_face = mask * new_face + (1 - mask) * normalized_face
-            new_face = numpy.clip(
-                (new_face[0] + 1) * 255 / 2, 0, 255).astype(image.dtype)
+            new_face = numpy.clip((new_face[0] + 1) * 255 / 2, 0, 255).astype(image.dtype)
 
         if self.match_histogram:
             new_face = self.color_hist_match(new_face, face_clipped, mask)
@@ -222,12 +219,10 @@ class Convert():
 
         if self.erosion_kernel is not None:
             if self.erosion_kernel_size > 0:
-                image_mask = cv2.erode(
-                    image_mask, self.erosion_kernel, iterations=1)
+                image_mask = cv2.erode(image_mask, self.erosion_kernel, iterations=1)
             elif self.erosion_kernel_size < 0:
                 dilation_kernel = abs(self.erosion_kernel)
-                image_mask = cv2.dilate(
-                    image_mask, dilation_kernel, iterations=1)
+                image_mask = cv2.dilate(image_mask, dilation_kernel, iterations=1)
 
         if self.blur_size != 0:
             image_mask = cv2.blur(image_mask, (self.blur_size, self.blur_size))

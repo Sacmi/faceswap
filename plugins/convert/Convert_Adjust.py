@@ -12,7 +12,6 @@ from lib.utils import add_alpha_channel
 
 class Convert():
     """ Adjust Converter """
-
     def __init__(self, encoder, smooth_mask=True, avg_color_adjust=True,
                  draw_transparent=False, **kwargs):
         self.encoder = encoder

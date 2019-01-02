@@ -40,8 +40,7 @@ class AutoEncoder:
             logger.warning('Error loading training info: %s', str(e.msg))
             self._epoch_no = 0
 
-        (face_A, face_B) = (hdf['decoder_AH5'], hdf['decoder_BH5']) if not swapped else (
-            hdf['decoder_BH5'], hdf['decoder_AH5'])
+        (face_A,face_B) = (hdf['decoder_AH5'], hdf['decoder_BH5']) if not swapped else (hdf['decoder_BH5'], hdf['decoder_AH5'])
 
         try:
             self.encoder.load_weights(str(self.model_dir / hdf['encoderH5']))
@@ -50,8 +49,7 @@ class AutoEncoder:
             logger.info('Loaded model weights')
             return True
         except Exception as e:
-            logger.warning(
-                'Failed loading existing training data. Starting a fresh model: %s', self.model_dir)
+            logger.warning('Failed loading existing training data. Starting a fresh model: %s', self.model_dir)
             return False
 
     def save_weights(self):
@@ -61,19 +59,18 @@ class AutoEncoder:
         self.encoder.save_weights(str(self.model_dir / hdf['encoderH5']))
         self.decoder_A.save_weights(str(self.model_dir / hdf['decoder_AH5']))
         self.decoder_B.save_weights(str(self.model_dir / hdf['decoder_BH5']))
-
-        logger.info(
-            "Model saved to local storage. Uploading to Google Drive...")
+        
+        logger.info("Model saved to local storage. Uploading to Google Drive...")
         self.gdrive_sync.uploadThread()
-
+        
         serializer = Serializer.get_serializer('json')
         state_fn = ".".join([hdf['state'], serializer.ext])
         state_dir = str(self.model_dir / state_fn)
         try:
             with open(state_dir, 'wb') as fp:
                 state_json = serializer.marshal({
-                    'epoch_no': self.epoch_no
-                })
+                    'epoch_no' : self.epoch_no
+                     })
                 fp.write(state_json.encode('utf-8'))
         except IOError as e:
             logger.error(e.strerror)
