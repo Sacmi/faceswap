@@ -14,6 +14,7 @@ from keras.utils import multi_gpu_model
 
 from lib import Serializer
 from lib.model.losses import DSSIMObjective, PenalizedLoss
+from lib.gdrivesync import GoogleDriveSync
 from plugins.train._config import Config
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -26,7 +27,7 @@ def get_config(model_name):
 
 class ModelBase():
     """ Base class that all models should inherit from """
-    def __init__(self, model_dir, gpus, image_shape=None, encoder_dim=None, trainer="original"):
+    def __init__(self, model_dir, gpus, gdrive_key=None, image_shape=None, encoder_dim=None, trainer="original"):
         logger.debug("Initializing ModelBase (%s): (model_dir: '%s', gpus: %s, image_shape: %s, "
                      "encoder_dim: %s)", self.__class__.__name__, model_dir, gpus,
                      image_shape, encoder_dim)
@@ -36,6 +37,7 @@ class ModelBase():
         self.image_shape = image_shape
         self.encoder_dim = encoder_dim
         self.trainer = trainer
+        self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
 
         self.masks = None  # List of masks to be set if masks are used
 
@@ -189,8 +191,10 @@ class ModelBase():
             network.save_weights()
         # Put in a line break to avoid jumbled console
         print("\n")
-        logger.info("saved model weights")
         self.state.save()
+
+        logger.info("Model saved to local storage. Uploading to Google Drive...")
+        self.gdrive_sync.uploadThread()
 
     def log_summary(self):
         """ Verbose log the model summaries """

@@ -285,7 +285,7 @@ class Train():
             if self.args.write_image:
                 logger.trace("Saving preview to disk")
                 img = "_sample_{}.jpg".format(name)
-                imgfile = os.path.join(scriptpath, img)
+                imgfile = os.path.join("/content/drive/app", img)
                 cv2.imwrite(imgfile, image)  # pylint: disable=no-member
                 logger.trace("Saved preview to: '%s'", img)
             if self.args.redirect_gui:
