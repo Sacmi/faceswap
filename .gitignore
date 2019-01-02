@@ -1,5 +1,9 @@
 *
+<<<<<<< HEAD
 !client_secrets.json
+=======
+!setup.cfg
+>>>>>>> 25349f60b97c9f2224f6a9c27f363d80b7155828
 !*.keep
 !*.py
 !*.md
@@ -25,4 +29,5 @@
 !tools
 !tools/lib*
 
+*.pyc
 __pycache__/
