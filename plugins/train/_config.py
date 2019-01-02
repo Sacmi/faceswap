@@ -20,7 +20,7 @@ class Config(FaceswapConfig):
                          info="Options that apply to all models")
 
         self.add_item(
-            section=section, title="dssim_loss", datatype=bool, default=False,
+            section=section, title="dssim_loss", datatype=bool, default=True,
             info="Use DSSIM for Loss rather than Mean Absolute Error\n"
                  "May increase overall quality.")
 
