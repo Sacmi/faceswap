@@ -147,6 +147,13 @@ class FileFullPaths(FullPaths):
         return [(name, getattr(self, name)) for name in names]
 
 
+class DirOrFileFullPaths(FileFullPaths):
+    """ Class that the gui uses to determine that the input can take a folder or a filename.
+        Inherits functionality from FileFullPaths
+        Has the effect of giving the user 2 Open Dialogue buttons in the gui """
+    pass
+
+
 class SaveFileFullPaths(FileFullPaths):
     """
     Class that gui uses to determine if you need to save a file.
@@ -306,12 +313,14 @@ class ExtractConvertArgs(FaceSwapArgs):
         argparse and gui """
         argument_list = list()
         argument_list.append({"opts": ("-i", "--input-dir"),
-                              "action": DirFullPaths,
+                              "action": DirOrFileFullPaths,
+                              "filetypes": "video",
                               "dest": "input_dir",
                               "default": "input",
-                              "help": "Input directory. A directory "
-                                      "containing the files you wish to "
-                                      "process. Defaults to 'input'"})
+                              "help": "Input directory or video. Either a "
+                                      "directory containing the image files "
+                                      "you wish to process or path to a "
+                                      "video file. Defaults to 'input'"})
         argument_list.append({"opts": ("-o", "--output-dir"),
                               "action": DirFullPaths,
                               "dest": "output_dir",
@@ -373,7 +382,7 @@ class ExtractArgs(ExtractConvertArgs):
                                       "fallback."})
         argument_list.append({
             "opts": ("-D", "--detector"),
-            "type": str,
+            "type": str.lower,
             "choices":  PluginLoader.get_available_extractors(
                 "detect"),
             "default": "mtcnn",
@@ -388,7 +397,7 @@ class ExtractArgs(ExtractConvertArgs):
                     "\n\talignment to dlib"})
         argument_list.append({
             "opts": ("-A", "--aligner"),
-            "type": str,
+            "type": str.lower,
             "choices": PluginLoader.get_available_extractors(
                 "align"),
             "default": "fan",
@@ -536,17 +545,13 @@ class ConvertArgs(ExtractConvertArgs):
                                       "specified, all faces will be "
                                       "converted"})
         argument_list.append({"opts": ("-t", "--trainer"),
-                              "type": str,
-                              # case sensitive because this is used to
-                              # load a plug-in.
+                              "type": str.lower,
                               "choices": PluginLoader.get_available_models(),
                               "default": PluginLoader.get_default_model(),
                               "help": "Select the trainer that was used to "
                                       "create the model"})
         argument_list.append({"opts": ("-c", "--converter"),
-                              "type": str,
-                              # case sensitive because this is used
-                              # to load a plugin.
+                              "type": str.lower,
                               "choices": ("Masked", "Adjust"),
                               "default": "Masked",
                               "help": "Converter to use"})
@@ -565,8 +570,6 @@ class ConvertArgs(ExtractConvertArgs):
                                       "swapped face to cover more space. "
                                       "(Masked converter only)"})
         argument_list.append({"opts": ("-M", "--mask-type"),
-                              # lowercase this, because it's just a
-                              # string later on.
                               "type": str.lower,
                               "dest": "mask_type",
                               "choices": ["rect",
@@ -651,15 +654,15 @@ class TrainArgs(FaceSwapArgs):
         argument_list = list()
         argument_list.append({"opts": ("-A", "--input-A"),
                               "action": DirFullPaths,
-                              "dest": "input_A",
-                              "default": "input_A",
+                              "dest": "input_a",
+                              "default": "input_a",
                               "help": "Input directory. A directory "
                                       "containing training images for face A. "
                                       "Defaults to 'input'"})
         argument_list.append({"opts": ("-B", "--input-B"),
                               "action": DirFullPaths,
-                              "dest": "input_B",
-                              "default": "input_B",
+                              "dest": "input_b",
+                              "default": "input_b",
                               "help": "Input directory. A directory "
                                       "containing training images for face B. "
                                       "Defaults to 'input'"})
@@ -677,7 +680,7 @@ class TrainArgs(FaceSwapArgs):
                               "help": "Sets the number of iterations before "
                                       "saving the model"})
         argument_list.append({"opts": ("-t", "--trainer"),
-                              "type": str,
+                              "type": str.lower,
                               "choices": PluginLoader.get_available_models(),
                               "default": PluginLoader.get_default_model(),
                               "help": "Select which trainer to use, Use "
@@ -708,11 +711,6 @@ class TrainArgs(FaceSwapArgs):
                               "default": False,
                               "help": "Writes the training result to a file "
                                       "even on preview mode"})
-        argument_list.append({"opts": ("-pl", "--use-perceptual-loss"),
-                              "action": "store_true",
-                              "dest": "perceptual_loss",
-                              "default": False,
-                              "help": "Use perceptual loss while training"})
         argument_list.append({"opts": ("-ag", "--allow-growth"),
                               "action": "store_true",
                               "dest": "allow_growth",
@@ -721,7 +719,7 @@ class TrainArgs(FaceSwapArgs):
                                       "to spare memory on some configs"})
         argument_list.append({"opts": ("-tia", "--timelapse-input-A"),
                               "action": DirFullPaths,
-                              "dest": "timelapse_input_A",
+                              "dest": "timelapse_input_a",
                               "default": None,
                               "help": "For if you want a timelapse: "
                                       "The input folder for the timelapse. "
@@ -732,7 +730,7 @@ class TrainArgs(FaceSwapArgs):
                                       "--timelapse-input-B parameter."})
         argument_list.append({"opts": ("-tib", "--timelapse-input-B"),
                               "action": DirFullPaths,
-                              "dest": "timelapse_input_B",
+                              "dest": "timelapse_input_b",
                               "default": None,
                               "help": "For if you want a timelapse: "
                                       "The input folder for the timelapse. "

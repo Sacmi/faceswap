@@ -28,7 +28,7 @@ class Extract():
         self.output_dir = get_folder(self.args.output_dir)
         logger.info("Output Directory: %s", self.args.output_dir)
         self.images = Images(self.args)
-        self.alignments = Alignments(self.args, True)
+        self.alignments = Alignments(self.args, True, self.images.is_video)
         self.plugins = Plugins(self.args)
 
         self.post_process = PostProcess(arguments)
@@ -54,7 +54,7 @@ class Extract():
                        self.verify_output)
 
     def threaded_io(self, task, io_args=None):
-        """ Load images in a background thread """
+        """ Perform I/O task in a background thread """
         logger.debug("Threading task: (Task: '%s')", task)
         io_args = tuple() if io_args is None else (io_args, )
         if task == "load":
