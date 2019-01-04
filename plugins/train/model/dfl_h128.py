@@ -10,9 +10,6 @@ from keras.models import Model as KerasModel
 from lib.model.nn_blocks import conv, upscale
 from .original import get_config, logger, Model as OriginalModel
 
-# TODO Implement DFL loss function (currently using dfaker)
-# TODO Get Mask working
-
 
 class Model(OriginalModel):
     """ Low Memory version of Original Faceswap Model """
@@ -21,7 +18,7 @@ class Model(OriginalModel):
                      self.__class__.__name__, args, kwargs)
         config = get_config(self.__module__.split(".")[-1])
 
-        kwargs["image_shape"] = (128, 128, 3)
+        kwargs["input_shape"] = (128, 128, 3)
         kwargs["encoder_dim"] = 256 if config["lowmem"] else 512
 
         super().__init__(*args, **kwargs)
@@ -31,8 +28,7 @@ class Model(OriginalModel):
         """ Set the dictionary for training """
         logger.debug("Setting training data")
         training_opts = dict()
-        training_opts["use_mask"] = True
-        training_opts["remove_alpha"] = True
+        training_opts["mask_type"] = self.config["mask_type"]
         training_opts["preview_images"] = 10
         logger.debug("Set training data: %s", training_opts)
         return training_opts
@@ -40,10 +36,10 @@ class Model(OriginalModel):
     def initialize(self):
         """ Initialize DFL H128 model """
         logger.debug("Initializing model")
-        mask_shape = self.image_shape[:2] + (1, )
-        inp_a = Input(shape=self.image_shape)
+        mask_shape = self.input_shape[:2] + (1, )
+        inp_a = Input(shape=self.input_shape)
         mask_a = Input(shape=mask_shape)
-        inp_b = Input(shape=self.image_shape)
+        inp_b = Input(shape=self.input_shape)
         mask_b = Input(shape=mask_shape)
 
         ae_a = KerasModel(
@@ -59,7 +55,7 @@ class Model(OriginalModel):
 
     def encoder(self):
         """ DFL H128 Encoder """
-        input_ = Input(shape=self.image_shape)
+        input_ = Input(shape=self.input_shape)
         var_x = input_
         var_x = conv(128)(var_x)
         var_x = conv(256)(var_x)

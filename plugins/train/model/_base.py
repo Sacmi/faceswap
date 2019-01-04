@@ -9,6 +9,7 @@ import os
 import sys
 
 from json import JSONDecodeError
+from keras import losses
 from keras.optimizers import Adam
 from keras.utils import multi_gpu_model
 
@@ -30,11 +31,11 @@ class ModelBase():
     def __init__(self, model_dir, gpus, gdrive_key=None, image_shape=None, encoder_dim=None, trainer="original"):
         logger.debug("Initializing ModelBase (%s): (model_dir: '%s', gpus: %s, image_shape: %s, "
                      "encoder_dim: %s)", self.__class__.__name__, model_dir, gpus,
-                     image_shape, encoder_dim)
+                     input_shape, encoder_dim)
         self.config = get_config(self.__module__.split(".")[-1])
         self.model_dir = model_dir
         self.gpus = gpus
-        self.image_shape = image_shape
+        self.input_shape = input_shape
         self.encoder_dim = encoder_dim
         self.trainer = trainer
         self.gdrive_sync = GoogleDriveSync(self.model_dir, gdrive_key)
@@ -116,8 +117,9 @@ class ModelBase():
         for side, model in self.predictors.items():
             if self.masks:
                 mask = self.masks[0] if side == "a" else self.masks[1]
+                mask_loss_func = self.mask_loss_function(mask, side)
                 model.compile(optimizer=optimizer,
-                              loss=[PenalizedLoss(mask, loss_func), "mse"])
+                              loss=[mask_loss_func, loss_func])
             else:
                 model.compile(optimizer=optimizer, loss=loss_func)
         logger.debug("Compiled Predictors")
@@ -125,11 +127,33 @@ class ModelBase():
     def loss_function(self):
         """ Set the loss function """
         if self.config["dssim_loss"]:
+            logger.verbose("Using DSSIM Loss")
             loss_func = DSSIMObjective()
         else:
-            loss_func = "mean_absolute_error"
+            logger.verbose("Using Mean Absolute Error Loss")
+            loss_func = losses.mean_absolute_error
         logger.debug(loss_func)
         return loss_func
+
+    def mask_loss_function(self, mask, side):
+        """ Set the loss function for masks
+            Side is input so we only log once """
+        if self.config.get("dssim_mask_loss", False):
+            if side == "a":
+                logger.verbose("Using DSSIM Loss for mask")
+            mask_loss_func = DSSIMObjective()
+        else:
+            if side == "a":
+                logger.verbose("Using Mean Absolute Error Loss for mask")
+            mask_loss_func = losses.mean_absolute_error
+
+        if self.config.get("penalized_mask_loss", False):
+            if side == "a":
+                logger.verbose("Using Penalized Loss for mask")
+            mask_loss_func = PenalizedLoss(mask, mask_loss_func)
+
+        logger.debug(mask_loss_func)
+        return mask_loss_func
 
     def converter(self, swap):
         """ Converter for autoencoder models """
@@ -149,7 +173,7 @@ class ModelBase():
     @property
     def base_filename(self):
         """ Base filename for model and state files """
-        resolution = self.image_shape[0]
+        resolution = self.input_shape[0]
         return "{}_{}_dim{}".format(self.name, resolution, self.encoder_dim)
 
     def map_weights(self, swapped):
