@@ -28,8 +28,8 @@ def get_config(model_name):
 
 class ModelBase():
     """ Base class that all models should inherit from """
-    def __init__(self, model_dir, gpus, gdrive_key=None, image_shape=None, encoder_dim=None, trainer="original"):
-        logger.debug("Initializing ModelBase (%s): (model_dir: '%s', gpus: %s, image_shape: %s, "
+    def __init__(self, model_dir, gpus, gdrive_key=None, input_shape=None, encoder_dim=None, trainer="original"):
+        logger.debug("Initializing ModelBase (%s): (model_dir: '%s', gpus: %s, input_shape: %s, "
                      "encoder_dim: %s)", self.__class__.__name__, model_dir, gpus,
                      input_shape, encoder_dim)
         self.config = get_config(".".join(self.__module__.split(".")[-2:]))
