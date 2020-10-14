@@ -5,10 +5,9 @@
     a multiprocess on a Windows System it will break Faceswap"""
 
 import logging
-import multiprocessing as mp
 import threading
 
-from queue import Empty as QueueEmpty  # pylint: disable=unused-import; # noqa
+from queue import Queue, Empty as QueueEmpty  # pylint: disable=unused-import; # noqa
 from time import sleep
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -21,17 +20,8 @@ class QueueManager():
     def __init__(self):
         logger.debug("Initializing %s", self.__class__.__name__)
 
-        # Hacky fix to stop multiprocessing spawning managers in child processes
-        if mp.current_process().name == "MainProcess":
-            # Use a Multiprocessing manager in main process
-            self.manager = mp.Manager()
-        else:
-            # Use a standard mp.queue in child process. NB: This will never be used
-            # but spawned processes will load this module, so we need to dummy in a queue
-            self.manager = mp
-        self.shutdown = self.manager.Event()
+        self.shutdown = threading.Event()
         self.queues = dict()
-        self._log_queue = self.manager.Queue()
         logger.debug("Initialized %s", self.__class__.__name__)
 
     def add_queue(self, name, maxsize=0):
@@ -43,7 +33,9 @@ class QueueManager():
         logger.debug("QueueManager adding: (name: '%s', maxsize: %s)", name, maxsize)
         if name in self.queues.keys():
             raise ValueError("Queue '{}' already exists.".format(name))
-        queue = self.manager.Queue(maxsize=maxsize)
+
+        queue = Queue(maxsize=maxsize)
+
         setattr(queue, "shutdown", self.shutdown)
         self.queues[name] = queue
         logger.debug("QueueManager added: (name: '%s')", name)
@@ -70,12 +62,24 @@ class QueueManager():
             To be called if there is an error """
         logger.debug("QueueManager terminating all queues")
         self.shutdown.set()
+        self.flush_queues()
         for q_name, queue in self.queues.items():
             logger.debug("QueueManager terminating: '%s'", q_name)
-            while not queue.empty():
-                queue.get(True, 1)
             queue.put("EOF")
         logger.debug("QueueManager terminated all queues")
+
+    def flush_queues(self):
+        """ Empty out all queues """
+        for q_name in self.queues.keys():
+            self.flush_queue(q_name)
+        logger.debug("QueueManager flushed all queues")
+
+    def flush_queue(self, q_name):
+        """ Empty out a specific queue """
+        logger.debug("QueueManager flushing: '%s'", q_name)
+        queue = self.queues[q_name]
+        while not queue.empty():
+            queue.get(True, 1)
 
     def debug_monitor(self, update_secs=2):
         """ Debug tool for monitoring queues """
@@ -89,6 +93,7 @@ class QueueManager():
             logged to INFO so it also displays in console
         """
         while True:
+            logger.info("====================================================")
             for name in sorted(self.queues.keys()):
                 logger.info("%s: %s", name, self.queues[name].qsize())
             sleep(update_secs)
